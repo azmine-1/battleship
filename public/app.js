@@ -177,72 +177,57 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   
     function dragDrop() {
-      let shipNameWithLastId = draggedShip.lastChild.id
-      let shipClass = shipNameWithLastId.slice(0, -2)
-      // console.log(shipClass)
-      let lastShipIndex = parseInt(shipNameWithLastId.substr(-1))
-      let shipLastId = lastShipIndex + parseInt(this.dataset.id)
-      // console.log(shipLastId)
-      const notAllowedHorizontal = [0,10,20,30,40,50,60,70,80,90,1,11,21,31,41,51,61,71,81,91,2,22,32,42,52,62,72,82,92,3,13,23,33,43,53,63,73,83,93]
-      const notAllowedVertical = [99,98,97,96,95,94,93,92,91,90,89,88,87,86,85,84,83,82,81,80,79,78,77,76,75,74,73,72,71,70,69,68,67,66,65,64,63,62,61,60]
+      let shipNameWithLastId = draggedShip.lastChild.id;
+      let shipClass = shipNameWithLastId.slice(0, -2);
+      let lastShipIndex = parseInt(shipNameWithLastId.substr(-1));
+      let shipLastId = lastShipIndex + parseInt(this.dataset.id);
+      const notAllowedHorizontal = [0,10,20,30,40,50,60,70,80,90,1,11,21,31,41,51,61,71,81,91,2,22,32,42,52,62,72,82,92,3,13,23,33,43,53,63,73,83,93];
+      const notAllowedVertical = [99,98,97,96,95,94,93,92,91,90,89,88,87,86,85,84,83,82,81,80,79,78,77,76,75,74,73,72,71,70,69,68,67,66,65,64,63,62,61,60];
       
-      let newNotAllowedHorizontal = notAllowedHorizontal.splice(0, 10 * lastShipIndex)
-      let newNotAllowedVertical = notAllowedVertical.splice(0, 10 * lastShipIndex)
-  
-      selectedShipIndex = parseInt(selectedShipNameWithIndex.substr(-1))
-  
-      shipLastId = shipLastId - selectedShipIndex
-      // console.log(shipLastId)
-  
-      if (isHorizontal && !newNotAllowedHorizontal.includes(shipLastId)) {
-        for (let i=0; i < draggedShipLength; i++) {
-          let directionClass
-          if (i === 0) directionClass = 'start'
-          if (i === draggedShipLength - 1) directionClass = 'end'
-          userSquares[parseInt(this.dataset.id) - selectedShipIndex + i].classList.add('taken', 'horizontal', directionClass, shipClass)
+      let newNotAllowedHorizontal = notAllowedHorizontal.splice(0, 10 * lastShipIndex);
+      let newNotAllowedVertical = notAllowedVertical.splice(0, 10 * lastShipIndex);
+    
+      selectedShipIndex = parseInt(selectedShipNameWithIndex.substr(-1));
+    
+      shipLastId = shipLastId - selectedShipIndex;
+    
+      if (isHorizontal) {
+        for (let i = 0; i < draggedShipLength; i++) {
+          if (userSquares[parseInt(this.dataset.id) - selectedShipIndex + i].classList.contains('taken')) {
+            return alert('Cannot place ship here.');
+          }
         }
-      //As long as the index of the ship you are dragging is not in the newNotAllowedVertical array! This means that sometimes if you drag the ship by its
-      //index-1 , index-2 and so on, the ship will rebound back to the displayGrid.
-      } else if (!isHorizontal && !newNotAllowedVertical.includes(shipLastId)) {
-        for (let i=0; i < draggedShipLength; i++) {
-          let directionClass
-          if (i === 0) directionClass = 'start'
-          if (i === draggedShipLength - 1) directionClass = 'end'
-          userSquares[parseInt(this.dataset.id) - selectedShipIndex + width*i].classList.add('taken', 'vertical', directionClass, shipClass)
+        if (!newNotAllowedHorizontal.includes(shipLastId)) {
+          for (let i = 0; i < draggedShipLength; i++) {
+            userSquares[parseInt(this.dataset.id) - selectedShipIndex + i].classList.add('taken', 'horizontal', shipClass);
+            // Set a part of the ship's image based on its segment if necessary
+          }
+        } else return;
+      } else {
+        for (let i = 0; i < draggedShipLength; i++) {
+          if (userSquares[parseInt(this.dataset.id) - selectedShipIndex + width * i].classList.contains('taken')) {
+            return alert('Cannot place ship here.');
+          }
         }
-      } else return
-  
-      displayGrid.removeChild(draggedShip)
-      if(!displayGrid.querySelector('.ship')) allShipsPlaced = true
+        if (!newNotAllowedVertical.includes(shipLastId)) {
+          for (let i = 0; i < draggedShipLength; i++) {
+            userSquares[parseInt(this.dataset.id) - selectedShipIndex + width * i].classList.add('taken', 'vertical', shipClass);
+            // Set a part of the ship's image based on its segment if necessary
+          }
+        } else return;
+      }
+      
+      // Instead of removing, add a class to indicate it's placed
+      draggedShip.classList.add('placed');
+      
+      // Update condition to check if all ships are placed based on a new criteria
+      // For example, check if all ship elements have the 'placed' class
+      allShipsPlaced = document.querySelectorAll('.ship:not(.placed)').length === 0;
     }
+    
   
     function dragEnd() {
       // console.log('dragend')
-    }
-  
-    // Game Logic for MultiPlayer
-    function playGameMulti(socket) {
-      setupButtons.style.display = 'none'
-      if(isGameOver) return
-      if(!ready) {
-        socket.emit('player-ready')
-        ready = true
-        playerReady(playerNum)
-      }
-  
-      if(enemyReady) {
-        if(currentPlayer === 'user') {
-          turnDisplay.innerHTML = 'Your Go'
-        }
-        if(currentPlayer === 'enemy') {
-          turnDisplay.innerHTML = "Enemy's Go"
-        }
-      }
-    }
-  
-    function playerReady(num) {
-      let player = `.p${parseInt(num) + 1}`
-      document.querySelector(`${player} .ready`).classList.toggle('active')
     }
   
     // Game Logic for Single Player
@@ -266,26 +251,38 @@ document.addEventListener('DOMContentLoaded', () => {
     let cruiserCount = 0
     let battleshipCount = 0
     let carrierCount = 0
-  
+    var explosionSound = new Audio('explosion.mp3')
+    var missSound = new Audio('miss.mp3')
     function revealSquare(classList) {
-      const enemySquare = computerGrid.querySelector(`div[data-id='${shotFired}']`)
-      const obj = Object.values(classList)
-      if (!enemySquare.classList.contains('boom') && currentPlayer === 'user' && !isGameOver) {
-        if (obj.includes('destroyer')) destroyerCount++
-        if (obj.includes('submarine')) submarineCount++
-        if (obj.includes('cruiser')) cruiserCount++
-        if (obj.includes('battleship')) battleshipCount++
-        if (obj.includes('carrier')) carrierCount++
+      const enemySquare = computerGrid.querySelector(`div[data-id='${shotFired}']`);
+      
+      // Check if the grid has already been bombed
+      if (enemySquare.classList.contains('boom') || enemySquare.classList.contains('miss')) {
+        alert('Grid already bombed! Please choose another square.');
+        return; // Exit the function early
       }
-      if (obj.includes('taken')) {
-        enemySquare.classList.add('boom')
-      } else {
-        enemySquare.classList.add('miss')
+    
+      const obj = Object.values(classList);
+      if (!isGameOver && currentPlayer === 'user') {
+        if (obj.includes('destroyer')) destroyerCount++;
+        if (obj.includes('submarine')) submarineCount++;
+        if (obj.includes('cruiser')) cruiserCount++;
+        if (obj.includes('battleship')) battleshipCount++;
+        if (obj.includes('carrier')) carrierCount++;
+        
+        if (obj.includes('taken')) {
+          enemySquare.classList.add('boom');
+          explosionSound.play();
+        } else {
+          enemySquare.classList.add('miss');
+          missSound.play();
+        }
+        checkForWins();
+        currentPlayer = 'enemy';
+        if (gameMode === 'singlePlayer') playGameSingle();
       }
-      checkForWins()
-      currentPlayer = 'enemy'
-      if(gameMode === 'singlePlayer') playGameSingle()
     }
+    
   
     let cpuDestroyerCount = 0
     let cpuSubmarineCount = 0

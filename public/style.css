@@ -171,18 +171,25 @@ body {
     height: calc(4.6vmin * var(--height, 1));
     border-radius: 2.3vmin;
   }
+  .placed {
+    opacity: 0;
+    pointer-events: none;
+  }
   
   .battleship-grid div {
     border: 1px solid hsla(0, 0%, 100%, .2);
   }
   
   .destroyer-container {
-    --width: 2;
+    --ship-length: 2;
+    width: calc(4.6vmin * var(--ship-length));
+    height:4.6vmin;
   }
   
   .destroyer-container-vertical {
     --height: 2;
     --width: 1;
+
   }
   
   .submarine-container,
