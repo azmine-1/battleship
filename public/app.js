@@ -1,3 +1,4 @@
+
 document.addEventListener('DOMContentLoaded', () => {
     const userGrid = document.querySelector('.grid-user')
     const computerGrid = document.querySelector('.grid-computer')
@@ -13,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const turnDisplay = document.querySelector('#whose-go')
     const infoDisplay = document.querySelector('#info')
     const setupButtons = document.getElementById('setup-buttons')
+    const restartButton = document.getElementById('restartGameButton')
     const userSquares = []
     const computerSquares = []
     let isHorizontal = true
@@ -352,7 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
   
       if ((destroyerCount + submarineCount + cruiserCount + battleshipCount + carrierCount) === 50) {
-        infoDisplay.innerHTML = "YOU WIN"
+        infoDisplay.innerHTML = "YOU WIN GAME OVER"
         gameOver()
       }
       if ((cpuDestroyerCount + cpuSubmarineCount + cpuCruiserCount + cpuBattleshipCount + cpuCarrierCount) === 50) {
@@ -360,9 +362,8 @@ document.addEventListener('DOMContentLoaded', () => {
         gameOver()
       }
     }
-  
     function gameOver() {
-      isGameOver = true
-      startButton.removeEventListener('click', playGameSingle)
+      isGameOver = true;
+      startButton.removeEventListener('click', playGameSingle);
     }
   })
